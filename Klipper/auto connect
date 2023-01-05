@@ -52,3 +52,9 @@ and that fixed it for me.
 I don't have a clue WHY this is working only this way, since printer is basically only a symlink to /dev/pts/0. So it should work both ways...but it doesn't.
 
 Btw both /bin/echo RESTART > /tmp/printer and /bin/echo RESTART > /dev/pts/0 work just fine when entering directly through a terminal when connected via ssh to the pi.
+
+-----------------------------------------------------------------------------------------------------------
+----------------------------------------------------link---------------------------------------------------
+-----------------------------------------------------------------------------------------------------------
+
+https://github.com/Klipper3d/klipper/issues/835
