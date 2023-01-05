@@ -1,0 +1,54 @@
+I start off by accessing Octopi using ssh. Then I create the file 98-klipper.rules in the /etc/udev/rules.d/ folder.
+
+ssh octoprint
+sudo touch /etc/udev/rules.d/98-klipper.rules
+sudo nano /etc/udev/rules.d/98-klipper.rules
+
+I then add the following text into the file
+
+## rule to restart klipper when the printer is connected via usb
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", ACTION=="add", RUN+="/usr/bin/sudo -u pi /bin/sh -c '/bin/echo RESTART > /tmp/printer'"
+
+Finally I re-load the udev rules
+
+sudo udevadm control --reload-rules
+
+-----------------------------------------------------------------------------------------------------------
+----------------------------------------------------or-----------------------------------------------------
+-----------------------------------------------------------------------------------------------------------
+
+I created a new udev rule /etc/udev/rules.d/98-klipper.rules with the content:
+
+## rule to restart klipper when the printer is connected via usb
+SUBSYSTEM=="usb", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", ACTION=="add", RUN+="/bin/sh -c '/bin/echo RESTART > /tmp/printer'"
+
+And now klippy gets a RESTART command sent whenever I connect or power on my printer. This only happens when the USB device is added to the system and not when Klippy automatically disconnects due to an error situation. Therefore the risk which Kevin mentioned above should be avoided.
+Note that you'd have to change the product-id and vendor-id in above rule according to your setup (can be figured out via lsusb)
+
+-----------------------------------------------------------------------------------------------------------
+----------------------------------------------------and----------------------------------------------------
+-----------------------------------------------------------------------------------------------------------
+
+I couldn't get the udev rule to work, because on my Linux system (armbian) /tmp had the 't' flag - and /tmp/printer couldn't be accessed by root - it would give me the error 'failed with exit code 2'
+
+Fixed this by changing the command that the udev rule runs, using sudo to run as the Klipper user :
+
+## rule to restart klipper when the printer is connected via usb
+SUBSYSTEM=="usb", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", ACTION=="add", RUN+="/usr/bin/sudo -u <username> /bin/sh -c '/bin/echo RESTART > /tmp/printer'"
+
+where <username> is the user that starts Klipper
+
+-----------------------------------------------------------------------------------------------------------
+----------------------------------------------------and----------------------------------------------------
+-----------------------------------------------------------------------------------------------------------
+
+The udev rule mentioned by @sidddy doesn't work for me.
+I changed the command within the string from
+/bin/echo RESTART > /tmp/printer
+to
+/bin/echo RESTART > /dev/pts/0
+and that fixed it for me.
+
+I don't have a clue WHY this is working only this way, since printer is basically only a symlink to /dev/pts/0. So it should work both ways...but it doesn't.
+
+Btw both /bin/echo RESTART > /tmp/printer and /bin/echo RESTART > /dev/pts/0 work just fine when entering directly through a terminal when connected via ssh to the pi.
